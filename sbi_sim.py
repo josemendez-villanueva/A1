@@ -165,7 +165,7 @@ inference_type = 'single'
 
 if inference_type == 'single':
     posterior = infer(simulation_wrapper, prior, method='SNPE', 
-                    num_simulations=1000, num_workers=8)
+                    num_simulations=1000, num_workers=56)
     samples = posterior.sample((10000,),
                                 x = observable_baseline_stats)
     posterior_sample = posterior.sample((1,),
@@ -191,9 +191,10 @@ if inference_type == 'single':
 
 # #Gives the optimized paramters Here
 
-# op_param = posterior_sample[0]
+op_param = posterior_sample[0]
 
-# x = simulator(op_param)
+x = simulator(op_param)
+print(op_param)
 # t = x['time']
 
 # #How to compare the poprates plot traces to the estimated one? Since we gave target one we cannot really do this since we do not have the target parameters
