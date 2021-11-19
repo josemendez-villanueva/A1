@@ -129,76 +129,76 @@ def simulator(param):
 
 
 
-# simulator([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+simulator([.004, .002, 1, .2, .4, .0045, 1, .003, .25, .1, 2, 2, 2])
 
-#Simulation Wrapper: Uses only histogram statistics (Can be fitted with fitness (potentially after checking integration with this model))
-def simulation_wrapper(params):
-    obs = simulator(params)
-    summstats = torch.as_tensor(obs['stats'])
-    return summstats
+# #Simulation Wrapper: Uses only histogram statistics (Can be fitted with fitness (potentially after checking integration with this model))
+# def simulation_wrapper(params):
+#     obs = simulator(params)
+#     summstats = torch.as_tensor(obs['stats'])
+#     return summstats
 
 
-# simulation_wrapper([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
-# Target Values will be set in the way that they are initialized on 'netParams.py'
-pop_target = [10, # Layer 1
-                5, 10, 10, 10, 10, # Layer 2
-                5, 10, 10, 10, 10, # Layer 3
-                5, 5, 10, 10, 10, 10, # Layer 4
-                5, 5, 10, 10, 10, 10, # Layer 5A
-                5, 5, 5, 10, 10, 10, 10, # Layer 5B
-                5, 5, 10, 10, 10, 10, # Layer 6
-                5, 5, 5, 10, 10, 10] #Thalamic pops not including 'TIM'
+# # simulation_wrapper([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+# # Target Values will be set in the way that they are initialized on 'netParams.py'
+# pop_target = [10, # Layer 1
+#                 5, 10, 10, 10, 10, # Layer 2
+#                 5, 10, 10, 10, 10, # Layer 3
+#                 5, 5, 10, 10, 10, 10, # Layer 4
+#                 5, 5, 10, 10, 10, 10, # Layer 5A
+#                 5, 5, 5, 10, 10, 10, 10, # Layer 5B
+#                 5, 5, 10, 10, 10, 10, # Layer 6
+#                 5, 5, 5, 10, 10, 10] #Thalamic pops not including 'TIM'
                 
-observable_baseline_stats = torch.as_tensor(np.histogram(pop_target, b)[0])
+# observable_baseline_stats = torch.as_tensor(np.histogram(pop_target, b)[0])
 
 
-#Prior distribution Setup
-prior_min = np.array([.5, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5])
-prior_max = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+# #Prior distribution Setup
+# prior_min = np.array([.5, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5])
+# prior_max = np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
 
-#Unifrom Distribution setup 
-prior = utils.torchutils.BoxUniform(low=torch.as_tensor(prior_min), 
-                                    high=torch.as_tensor(prior_max))
+# #Unifrom Distribution setup 
+# prior = utils.torchutils.BoxUniform(low=torch.as_tensor(prior_min), 
+#                                     high=torch.as_tensor(prior_max))
 
-#Choose the option of running single-round or multi-round inference
-inference_type = 'single'
+# #Choose the option of running single-round or multi-round inference
+# inference_type = 'single'
 
-if inference_type == 'single':
-    posterior = infer(simulation_wrapper, prior, method='SNPE', 
-                    num_simulations=1000, num_workers=56)
-    samples = posterior.sample((10000,),
-                                x = observable_baseline_stats)
-    posterior_sample = posterior.sample((1,),
-                                            x = observable_baseline_stats).numpy()
-
-# elif inference_type == 'multi':
-#     #Number of rounds that you want to run your inference
-#     num_rounds = 2
-#     #Driver for the multi-rounds inference
-#     for _ in range(num_rounds):
-#         posterior = infer(simulation_wrapper, prior, method='SNPE', 
-#                     num_simulations=15000, num_workers=56)
-#         prior = posterior.set_default_x(observable_baseline_stats)
-#         samples = posterior.sample((10000,), x = observable_baseline_stats)
-
+# if inference_type == 'single':
+#     posterior = infer(simulation_wrapper, prior, method='SNPE', 
+#                     num_simulations=1000, num_workers=56)
+#     samples = posterior.sample((10000,),
+#                                 x = observable_baseline_stats)
 #     posterior_sample = posterior.sample((1,),
-#                         x = observable_baseline_stats).numpy()
+#                                             x = observable_baseline_stats).numpy()
 
-# else:
-#     print('Wrong Input for Inference Type')
+# # elif inference_type == 'multi':
+# #     #Number of rounds that you want to run your inference
+# #     num_rounds = 2
+# #     #Driver for the multi-rounds inference
+# #     for _ in range(num_rounds):
+# #         posterior = infer(simulation_wrapper, prior, method='SNPE', 
+# #                     num_simulations=15000, num_workers=56)
+# #         prior = posterior.set_default_x(observable_baseline_stats)
+# #         samples = posterior.sample((10000,), x = observable_baseline_stats)
 
-# # Plot Observed and Posterior
+# #     posterior_sample = posterior.sample((1,),
+# #                         x = observable_baseline_stats).numpy()
 
-# #Gives the optimized paramters Here
+# # else:
+# #     print('Wrong Input for Inference Type')
 
-op_param = posterior_sample[0]
+# # # Plot Observed and Posterior
 
-x = simulator(op_param)
-print(op_param)
-# t = x['time']
+# # #Gives the optimized paramters Here
 
-# #How to compare the poprates plot traces to the estimated one? Since we gave target one we cannot really do this since we do not have the target parameters
+# op_param = posterior_sample[0]
+
+# x = simulator(op_param)
+# print(op_param)
+# # t = x['time']
+
+# # #How to compare the poprates plot traces to the estimated one? Since we gave target one we cannot really do this since we do not have the target parameters
 
 
-# print('Posterior Sample Param:', op_param)
-# print('Pop Rate Estimates:', x['pop'])
+# # print('Posterior Sample Param:', op_param)
+# # print('Pop Rate Estimates:', x['pop'])
