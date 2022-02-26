@@ -36,8 +36,6 @@ for pop in pop_order:
     dens_list.append(density)
 
 
-
-
 def simulator(param):
 
 
@@ -69,11 +67,6 @@ def simulator(param):
     time = np.array(sim.simData['t'])
     hist = np.histogram(poprates, dens_list)[0] #replaces the need for a summary statistics class/fitness function class
 
-
-    # print(params)
-    #print(poprates)
-
-    
     return dict(stats = hist, time = time, pop = poprates, traces = plotraces)
 
 
@@ -84,8 +77,6 @@ def simulation_wrapper(params):
     obs = simulator(params)
     summstats = torch.as_tensor(obs['stats'])
     return summstats
-
-
 
 
 # Target Values will be set in the way that they are initialized on 'netParams.py'
@@ -116,16 +107,65 @@ inference_type = 'single'
 
 if inference_type == 'single':
     posterior = infer(simulation_wrapper, prior, method='SNPE', 
-                    num_simulations=1000, num_workers=6)
-    samples = posterior.sample((1000,),
+                    num_simulations=15000, num_workers=6)
+    samples = posterior.sample((10000,),
                                 x = observable_baseline_stats)
     posterior_sample = posterior.sample((1,),
                                             x = observable_baseline_stats).numpy()
 
 
+elif inference_type == 'multi':
+    #Number of rounds that you want to run your inference
+    num_rounds = 2
+    #Driver for the multi-rounds inference
+    for _ in range(num_rounds):
+        posterior = infer(simulation_wrapper, prior, method='SNPE', 
+                    num_simulations=15000, num_workers=8)
+        prior = posterior.set_default_x(observable_baseline_stats)
+        samples = posterior.sample((10000,), x = observable_baseline_stats)
 
+    posterior_sample = posterior.sample((1,),
+                        x = observable_baseline_stats).numpy()
+
+else:
+    print('Wrong Input for Inference Type')
+
+
+
+# Plot Observed and Posterior
+
+#Gives the optimized paramters Here
 op_param = posterior_sample[0]
 
 x = simulator(op_param)
-print(op_param)
-# t = x['time']
+t = x['time']
+
+#How to compare the poprates plot traces to the estimated one? Since we gave target one we cannot really do this since we do not have the target parameters
+
+# print('Posterior Sample Param:', op_param)
+# print('Pop Rate Estimates:', x['pop'])
+# plt.figure(1, figsize=(16,14))
+
+# gs = mpl.gridspec.GridSpec(2,1,height_ratios=[4,1])
+# ax = plt.subplot(gs[0])
+
+# plt.plot(t, x['traces'], '--', lw=2, label='posterior sample')
+# plt.xlabel('time (ms)')
+# plt.ylabel('voltage (mV)')
+# plt.title('Complex Network')
+
+# ax = plt.gca()
+# handles, labels = ax.get_legend_handles_labels()
+# ax.legend(handles[::-1], labels[::-1], bbox_to_anchor=(1.3, 1), 
+#           loc='upper right')
+# plt.legend()
+# plt.savefig('observation_vs_posterior.png')
+
+# plt.figure(2)
+# _ = analysis.pairplot(samples, limits=[[0.0,0.4],[0.0,0.4],[0.0,0.01],[0,1.0],[0.0,0.01], [0.0,0.01]], 
+#                    figsize=(16,14))  
+
+# plt.legend()
+# plt.savefig('PairPlot.png')
+
+# print("Program took", time.time() - start_time, "seconds to run")
