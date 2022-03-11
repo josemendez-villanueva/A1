@@ -1,0 +1,6 @@
+NOT ORDER  SPECIFIC
+1. Look into creating slurm username
+2. Implement simulator via slurm externally
+3. Look into sbi implementation to backend of NetPyNE
+4. Run tutorial 8 for reference/example
+
